@@ -63,7 +63,7 @@ class SteelLoadingPlanner:
         # Keep physical attribute columns if they exist
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "CUSTOMER", "PROJECTID", "PROJECT", "POSTAL_SECTOR"
+            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"
         ]
         return df
 
@@ -78,7 +78,7 @@ class SteelLoadingPlanner:
         item_attributes: Dict[str, Dict[str, Any]] = {}
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "CUSTOMER", "PROJECTID", "PROJECT", "POSTAL_SECTOR"
+            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"
         ]
         
         for item_no in self.dataframe["ITEM_NO"].unique():
@@ -388,7 +388,7 @@ class SteelLoadingPlanner:
         
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
-            "Consider truck maximum loading weight, total order weight for project, "
+            "Consider truck maximum loading weight, total order weight for project ID, "
             "physical dimensions (length, width, height), weight, quantity, "
             "and shape when making loading decisions. Use similar historical loading cases as reference "
             "to recommend efficient groupings while keeping practical constraints in mind. "
@@ -430,10 +430,10 @@ class SteelLoadingPlanner:
                             attr_parts.append(f"Pieces={int(attrs['ORDER_PIECES'])}")
                         if attrs.get("SHAPE"):
                             attr_parts.append(f"Shape={attrs['SHAPE']}")
-                        if attrs.get("CUSTOMER"):
-                            attr_parts.append(f"Customer={attrs['CUSTOMER']}")
-                        if attrs.get("PROJECT"):
-                            attr_parts.append(f"project={attrs['PROJECT']}")
+                        if attrs.get("CUSTOMERID"):
+                            attr_parts.append(f"CustomerID={attrs['CUSTOMERID']}")
+                        if attrs.get("PROJECTID"):
+                            attr_parts.append(f"ProjectID={attrs['PROJECTID']}")
                         if attrs.get("POST_SECTOR"):
                             attr_parts.append(f"PostalSector={attrs['POST_SECTOR']}")
                         user_prompt += ", ".join(attr_parts) + "\n"
@@ -472,9 +472,7 @@ class SteelLoadingPlanner:
                 "WEIGHT": "Weight",
                 "SHAPE": "Shape",
                 "CUSTOMERID": "CustomerID",
-                "CUSTOMER": "Customer",
                 "PROJECTID": "ProjectID",
-                "PROJECT": "Project",
                 "POSTAL_SECTOR": "PostalSector"
             }
             
@@ -519,8 +517,8 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- One load with one project if the total weight is above " + str(weight_min) + "T\n"
-            "- Combine orders only for up to " + str(combine_max) + " different project\n"
+            "- One load with one project ID if the total weight is above " + str(weight_min) + "T\n"
+            "- Combine orders only for up to " + str(combine_max) + " different project ID\n"
             "- Physical dimensions and weight constraints\n"
             "- Historical loading patterns\n"
             "- Efficient space utilization"
@@ -655,7 +653,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
     # Extract attributes for each item
     attribute_columns = [
         "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-        "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "CUSTOMER", "PROJECTID", "PROJECT", "POSTAL_SECTOR"
+        "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"
     ]
     
     item_attributes: Dict[str, Dict[str, Any]] = {}
@@ -669,7 +667,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
         attrs: Dict[str, Any] = {}
         
         # For dimensions and shape, use first non-null value
-        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE", "CUSTOMERID", "CUSTOMER", "PROJECTID", "PROJECT", "POSTAL_SECTOR"]:
+        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"]:
             if col in df.columns:
                 # Get first non-null value
                 values = item_group[col].dropna()
@@ -679,11 +677,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
                         attrs[col] = str(value) if pd.notna(value) else None
                     elif col == "CUSTOMERID":
                         attrs[col] = str(value) if pd.notna(value) else None
-                    elif col == "CUSTOMER":
-                        attrs[col] = str(value) if pd.notna(value) else None
                     elif col == "PROJECTID":
-                        attrs[col] = str(value) if pd.notna(value) else None
-                    elif col == "PROJECT":
                         attrs[col] = str(value) if pd.notna(value) else None
                     elif col == "POSTAL_SECTOR":
                         attrs[col] = str(value) if pd.notna(value) else None
@@ -984,7 +978,7 @@ def run_streamlit_app() -> None:
                 with st.expander("Preview uploaded data", expanded=False):
                     st.write(f"**Total rows:** {len(uploaded_df)}")
                     st.write(f"**Unique items:** {len(parsed_items)}")
-                    st.dataframe(uploaded_df.head(10), use_container_width=True)
+                    st.dataframe(uploaded_df.head(10), width="stretch")
                 
                 # Display extracted items and attributes
                 if parsed_items:
@@ -1019,15 +1013,13 @@ def run_streamlit_app() -> None:
                                     row["Pieces"] = attrs.get("ORDER_PIECES", "N/A")
                                     row["Shape"] = attrs.get("SHAPE", "N/A")
                                     row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
-                                    row["Customer"] = attrs.get("CUSTOMER", "N/A")
                                     row["ProjectID"] = attrs.get("PROJECTID", "N/A")
-                                    row["Project"] = attrs.get("PROJECT", "N/A")
                                     row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
                                     attr_rows.append(row)
                                 
                                 if attr_rows:
                                     attr_df = pd.DataFrame(attr_rows)
-                                    st.dataframe(attr_df, use_container_width=True, hide_index=True)
+                                    st.dataframe(attr_df, width="stretch", hide_index=True)
         except Exception as e:
             st.error(f"Error processing uploaded file: {str(e)}")
             uploaded_df = None
@@ -1116,20 +1108,20 @@ def run_streamlit_app() -> None:
                         row["Weight (kg)"] = "N/A"
                     
                     row["Shape"] = attrs.get("SHAPE", "N/A")
-                    row["Customer"] = attrs.get("CUSTOMER", "N/A")
-                    row["Project"] = attrs.get("PROJECT", "N/A")
+                    row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
+                    row["ProjectID"] = attrs.get("PROJECTID", "N/A")
                     row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
                     attr_summary_rows.append(row)
                 
                 if attr_summary_rows:
                     attr_summary_df = pd.DataFrame(attr_summary_rows)
-                    st.dataframe(attr_summary_df, use_container_width=True, hide_index=True)
+                    st.dataframe(attr_summary_df, width="stretch", hide_index=True)
 
         if openai_result.get("baseline_plan"):
             with st.expander("Baseline provided to the model"):
                 st.dataframe(
                     _plan_to_dataframe(openai_result["baseline_plan"]),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
         # Generate output CSV with same format as input file
@@ -1154,7 +1146,7 @@ def run_streamlit_app() -> None:
                         reference_columns = ["LOAD_NO", "ITEM_NO", "LENGTH", "WIDTH", 
                                            "HEIGHT", "DIAMETER",
                                            "ORDER_PIECES", "WEIGHT", "SHAPE",
-                                           "CUSTOMERID", "CUSTOMER", "PROJECTID", "PROJECT", "POSTAL_SECTOR"]
+                                           "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"]
                     
                     # Convert plan to DataFrame
                     output_df = _plan_to_output_dataframe(
@@ -1167,7 +1159,7 @@ def run_streamlit_app() -> None:
                     with st.expander("Preview output table (same format as input)", expanded=False):
                         st.write(f"**Total rows:** {len(output_df)}")
                         st.write(f"**Number of loads:** {output_df['LOAD_NO'].nunique() if 'LOAD_NO' in output_df.columns else 0}")
-                        st.dataframe(output_df.head(20), use_container_width=True)
+                        st.dataframe(output_df.head(20), width="stretch")
             except Exception as e:
                 st.warning(f"Could not generate output table: {str(e)}")
                 output_df = None
