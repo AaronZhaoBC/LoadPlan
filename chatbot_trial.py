@@ -519,8 +519,8 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- One load with one project if the total weight is above " + weight_min + "T\n"
-            "- Combine orders only for up to " + combine_max + " different project\n"
+            "- One load with one project if the total weight is above " + str(weight_min) + "T\n"
+            "- Combine orders only for up to " + str(combine_max) + " different project\n"
             "- Physical dimensions and weight constraints\n"
             "- Historical loading patterns\n"
             "- Efficient space utilization"
