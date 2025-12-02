@@ -1047,7 +1047,7 @@ def run_streamlit_app() -> None:
                     temperature=temperature,
                     use_history_plan=use_history_plan,
                     weight_min=weight_min,
-                    combine_max=comb,
+                    combine_max=combine_max,
                 )
             except RuntimeError as exc:
                 st.error(str(exc))
