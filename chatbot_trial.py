@@ -467,11 +467,11 @@ class SteelLoadingPlanner:
                 "DIAMETER": "Diameter",
                 "ORDER_PIECES": "Pieces",
                 "WEIGHT": "Weight",
-                "SHAPE": "Shape"
-                "CUSTOMERID": "CustomerID"
-                "CUSTOMER": "Customer"
-                "PROJECTID": "ProjectID"
-                "PROJECT": "Project"
+                "SHAPE": "Shape",
+                "CUSTOMERID": "CustomerID",
+                "CUSTOMER": "Customer",
+                "PROJECTID": "ProjectID",
+                "PROJECT": "Project",
                 "POSTAL_SECTOR": "PostalSector"
             }
             
