@@ -354,6 +354,8 @@ class SteelLoadingPlanner:
         item_attributes: Optional[Dict[str, Dict[str, Any]]] = None,
         temperature: float = 0.1,
         use_history_plan: bool = True,
+        weight_min:int = 10,
+        combine_max:int = 3,
     ) -> Dict[str, Any]:
         """
         Ask an OpenAI model to propose a loading plan for the new items.
@@ -386,8 +388,9 @@ class SteelLoadingPlanner:
         
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
-            "Consider physical dimensions (length, width, height), diameter, weight, quantity, shape, "
-            "and project when making loading decisions. Use similar historical loading cases as reference "
+            "Consider truck maximum loading weight, total order weight for project, "
+            "physical dimensions (length, width, height), weight, quantity, "
+            "and shape when making loading decisions. Use similar historical loading cases as reference "
             "to recommend efficient groupings while keeping practical constraints in mind. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
@@ -516,8 +519,9 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
+            "- One load with one project if the total weight is above " + weight_min + "T\n"
+            "- Combine orders only for up to " + combine_max + " different project\n"
             "- Physical dimensions and weight constraints\n"
-            "- Shape compatibility\n"
             "- Historical loading patterns\n"
             "- Efficient space utilization"
         )
@@ -1042,6 +1046,8 @@ def run_streamlit_app() -> None:
                     item_attributes=item_attributes,
                     temperature=temperature,
                     use_history_plan=use_history_plan,
+                    weight_min=weight_min,
+                    combine_max=comb,
                 )
             except RuntimeError as exc:
                 st.error(str(exc))
