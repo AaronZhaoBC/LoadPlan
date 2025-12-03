@@ -553,7 +553,7 @@ class SteelLoadingPlanner:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                temperature=temperature,
+                #temperature=temperature,
             )
             return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
         except AttributeError:
