@@ -517,8 +517,9 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- One load with one project ID if the total weight is above " + str(weight_min) + " Tons\n"
-            "- Combine maximum to " + str(combine_max) + " different project ID to one load if the total weight is below " + str(weight_min + 1) + " Tons\n"
+            "- Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons; SC is 10000 Tons\n"
+            "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only\n"
+            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "\n"
             "- Physical dimensions and weight constraints\n"
             "- Historical loading patterns\n"
             "- Efficient space utilization"
