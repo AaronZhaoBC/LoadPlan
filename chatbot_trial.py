@@ -399,6 +399,7 @@ class SteelLoadingPlanner:
         # Build prompt with similar cases
         user_prompt = f"New steel items to load (ITEM_NO): {new_items_list}\n\n"
         
+        """
         if similar_loads:
             user_prompt += "Similar historical loading cases found:\n\n"
             for idx, (load_no, sim_score, load_info) in enumerate(similar_loads, 1):
@@ -443,6 +444,7 @@ class SteelLoadingPlanner:
             # Fallback to general summary if no similar cases found
             context_summary = self._build_context_summary()
             user_prompt += f"Historical summary:\n{context_summary}\n\n"
+        """
 
         # Add physical attributes for new items with better formatting
         def format_attribute_value(key: str, value: Any) -> str:
@@ -519,10 +521,10 @@ class SteelLoadingPlanner:
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
             "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
-            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "."
-            #"- Physical dimensions and weight constraints\n"
+            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "\n"
+            "- Physical dimensions and weight constraints\n"
             #"- Historical loading patterns\n"
-            #"- Efficient space utilization"
+            "- Efficient space utilization"
         )
 
         response_text = self._call_openai(system_prompt, user_prompt, temperature)
