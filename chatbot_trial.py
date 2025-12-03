@@ -520,9 +520,9 @@ class SteelLoadingPlanner:
             "- Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons; SC is 10000 Tons\n"
             "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only\n"
             "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "\n"
-            "- Physical dimensions and weight constraints\n"
-            "- Historical loading patterns\n"
-            "- Efficient space utilization"
+            #"- Physical dimensions and weight constraints\n"
+            #"- Historical loading patterns\n"
+            #"- Efficient space utilization"
         )
 
         response_text = self._call_openai(system_prompt, user_prompt, temperature)
