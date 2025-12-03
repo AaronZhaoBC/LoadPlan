@@ -521,11 +521,11 @@ class SteelLoadingPlanner:
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
             "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
-            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "\n"
-            "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR. If the distence is greater than 8 KM, the project cannot be loaded to same vehicle.\n"
-            "- Physical dimensions and weight constraints\n"
+            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + ".\n"
+            "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore. If the distence is greater than 8 KM, the project cannot be loaded to same vehicle."
+            #"- Physical dimensions and weight constraints"
             #"- Historical loading patterns\n"
-            "- Efficient space utilization"
+            #"- Efficient space utilization"
         )
 
         response_text = self._call_openai(system_prompt, user_prompt, temperature)
