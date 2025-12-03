@@ -38,7 +38,7 @@ class SteelLoadingPlanner:
         self,
         data_path: str,
         openai_api_key: Optional[str] = None,
-        model: str = "gpt-5.1",
+        model: str = "gpt-5-mini",
         top_k_combos: int = 10,
     ) -> None:
         self.data_path = data_path
@@ -517,8 +517,8 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- One load with one project ID if the total weight is above " + str(weight_min) + " Ton\n"
-            "- Combine orders only for up to " + str(combine_max) + " different project ID\n"
+            "- One load with one project ID if the total weight is above " + str(weight_min) + " Tons\n"
+            "- Combine maximum to " + str(combine_max) + " different project ID to one load if the total weight is below " + str(weight_min + 1) + " Tons\n"
             "- Physical dimensions and weight constraints\n"
             "- Historical loading patterns\n"
             "- Efficient space utilization"
