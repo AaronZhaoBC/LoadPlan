@@ -392,6 +392,7 @@ class SteelLoadingPlanner:
             "physical dimensions (length, width, height), weight, quantity, "
             "and shape when making loading decisions. Use similar historical loading cases as reference "
             "to recommend efficient groupings while keeping practical constraints in mind. "
+            "Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons; SC is 10000 Tons. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
 
@@ -517,11 +518,10 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons; SC is 10000 Tons\n"
-            "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only\n"
+            "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
             "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "\n"
             #"- Physical dimensions and weight constraints\n"
-            #"- Historical loading patterns\n"
+            "- Historical loading patterns\n"
             #"- Efficient space utilization"
         )
 
