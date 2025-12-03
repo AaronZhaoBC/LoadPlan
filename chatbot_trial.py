@@ -63,7 +63,7 @@ class SteelLoadingPlanner:
         # Keep physical attribute columns if they exist
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"
+            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
         ]
         return df
 
@@ -78,7 +78,7 @@ class SteelLoadingPlanner:
         item_attributes: Dict[str, Dict[str, Any]] = {}
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"
+            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
         ]
         
         for item_no in self.dataframe["ITEM_NO"].unique():
@@ -388,63 +388,62 @@ class SteelLoadingPlanner:
         
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
-            "Consider truck maximum loading weight, total order weight for project ID, "
+            "Consider assigned vehicle maximum loading weight, total order weight for project ID, "
             "physical dimensions (length, width, height), weight, quantity, "
             "and shape when making loading decisions. Use similar historical loading cases as reference "
             "to recommend efficient groupings while keeping practical constraints in mind. "
-            "Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons; SC is 10000 Tons. "
+            "Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
 
         # Build prompt with similar cases
         user_prompt = f"New steel items to load (ITEM_NO): {new_items_list}\n\n"
         
-        """
-        if similar_loads:
-            user_prompt += "Similar historical loading cases found:\n\n"
-            for idx, (load_no, sim_score, load_info) in enumerate(similar_loads, 1):
-                user_prompt += f"Case {idx} (LOAD_NO: {load_no}, Similarity: {sim_score:.2%}):\n"
-                user_prompt += f"  Items: {', '.join(load_info['items'])}\n"
-                user_prompt += f"  Total weight: {load_info['total_weight_kg']:.2f} kg"
-                if load_info['total_weight_ton'] > 0:
-                    user_prompt += f" ({load_info['total_weight_ton']:.3f} ton)"
-                user_prompt += f"\n  Total pieces: {load_info['total_pieces']}\n"
+        # if similar_loads:
+        #     user_prompt += "Similar historical loading cases found:\n\n"
+        #     for idx, (load_no, sim_score, load_info) in enumerate(similar_loads, 1):
+        #         user_prompt += f"Case {idx} (LOAD_NO: {load_no}, Similarity: {sim_score:.2%}):\n"
+        #         user_prompt += f"  Items: {', '.join(load_info['items'])}\n"
+        #         user_prompt += f"  Total weight: {load_info['total_weight_kg']:.2f} kg"
+        #         if load_info['total_weight_ton'] > 0:
+        #             user_prompt += f" ({load_info['total_weight_ton']:.3f} ton)"
+        #         user_prompt += f"\n  Total pieces: {load_info['total_pieces']}\n"
                 
-                # Add item details with attributes
-                if load_info['item_details']:
-                    user_prompt += "  Item details:\n"
-                    for item_detail in load_info['item_details'][:10]:  # Limit to first 10 items
-                        item_no = item_detail['ITEM_NO']
-                        attrs = item_detail['attributes']
-                        user_prompt += f"    {item_no}: "
-                        attr_parts = []
-                        if attrs.get("LENGTH"):
-                            attr_parts.append(f"L={attrs['LENGTH']:.0f}mm")
-                        if attrs.get("WIDTH"):
-                            attr_parts.append(f"W={attrs['WIDTH']:.0f}mm")
-                        if attrs.get("HEIGHT"):
-                            attr_parts.append(f"H={attrs['HEIGHT']:.0f}mm")
-                        if attrs.get("WEIGHT"):
-                            ton_val = attrs["WEIGHT"]
-                            attr_parts.append(f"Weight={ton_val:.3f} ton")
-                            attr_parts.append(f"Weight={ton_val * 1000:.1f} kg")
-                        if attrs.get("ORDER_PIECES"):
-                            attr_parts.append(f"Pieces={int(attrs['ORDER_PIECES'])}")
-                        if attrs.get("SHAPE"):
-                            attr_parts.append(f"Shape={attrs['SHAPE']}")
-                        if attrs.get("CUSTOMERID"):
-                            attr_parts.append(f"CustomerID={attrs['CUSTOMERID']}")
-                        if attrs.get("PROJECTID"):
-                            attr_parts.append(f"ProjectID={attrs['PROJECTID']}")
-                        if attrs.get("POST_SECTOR"):
-                            attr_parts.append(f"PostalSector={attrs['POST_SECTOR']}")
-                        user_prompt += ", ".join(attr_parts) + "\n"
-                user_prompt += "\n"
-        else:
-            # Fallback to general summary if no similar cases found
-            context_summary = self._build_context_summary()
-            user_prompt += f"Historical summary:\n{context_summary}\n\n"
-        """
+        #         # Add item details with attributes
+        #         if load_info['item_details']:
+        #             user_prompt += "  Item details:\n"
+        #             for item_detail in load_info['item_details'][:10]:  # Limit to first 10 items
+        #                 item_no = item_detail['ITEM_NO']
+        #                 attrs = item_detail['attributes']
+        #                 user_prompt += f"    {item_no}: "
+        #                 attr_parts = []
+        #                 if attrs.get("LENGTH"):
+        #                     attr_parts.append(f"L={attrs['LENGTH']:.0f}mm")
+        #                 if attrs.get("WIDTH"):
+        #                     attr_parts.append(f"W={attrs['WIDTH']:.0f}mm")
+        #                 if attrs.get("HEIGHT"):
+        #                     attr_parts.append(f"H={attrs['HEIGHT']:.0f}mm")
+        #                 if attrs.get("WEIGHT"):
+        #                     ton_val = attrs["WEIGHT"]
+        #                     attr_parts.append(f"Weight={ton_val:.3f} ton")
+        #                     attr_parts.append(f"Weight={ton_val * 1000:.1f} kg")
+        #                 if attrs.get("ORDER_PIECES"):
+        #                     attr_parts.append(f"Pieces={int(attrs['ORDER_PIECES'])}")
+        #                 if attrs.get("SHAPE"):
+        #                     attr_parts.append(f"Shape={attrs['SHAPE']}")
+        #                 if attrs.get("CUSTOMERID"):
+        #                     attr_parts.append(f"CustomerID={attrs['CUSTOMERID']}")
+        #                 if attrs.get("PROJECTID"):
+        #                     attr_parts.append(f"ProjectID={attrs['PROJECTID']}")
+        #                 if attrs.get("POST_SECTOR"):
+        #                     attr_parts.append(f"PostalSector={attrs['POST_SECTOR']}")
+        #                 user_prompt += ", ".join(attr_parts) + "\n"
+        #         user_prompt += "\n"
+        # else:
+        #     # Fallback to general summary if no similar cases found
+        #     context_summary = self._build_context_summary()
+        #     user_prompt += f"Historical summary:\n{context_summary}\n\n"
+      
 
         # Add physical attributes for new items with better formatting
         def format_attribute_value(key: str, value: Any) -> str:
@@ -476,7 +475,8 @@ class SteelLoadingPlanner:
                 "SHAPE": "Shape",
                 "CUSTOMERID": "CustomerID",
                 "PROJECTID": "ProjectID",
-                "POSTAL_SECTOR": "PostalSector"
+                "POSTAL_SECTOR": "PostalSector",
+                "VEHICLE_TYPE": "VehicleType"
             }
             
             for key, value in attrs.items():
@@ -522,6 +522,7 @@ class SteelLoadingPlanner:
             "\nPlease provide a loading plan considering:\n"
             "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
             "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + "\n"
+            "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR. If the distence is greater than 8 KM, the project cannot be loaded to same vehicle.\n"
             "- Physical dimensions and weight constraints\n"
             #"- Historical loading patterns\n"
             "- Efficient space utilization"
@@ -656,7 +657,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
     # Extract attributes for each item
     attribute_columns = [
         "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-        "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"
+        "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
     ]
     
     item_attributes: Dict[str, Dict[str, Any]] = {}
@@ -670,7 +671,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
         attrs: Dict[str, Any] = {}
         
         # For dimensions and shape, use first non-null value
-        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"]:
+        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"]:
             if col in df.columns:
                 # Get first non-null value
                 values = item_group[col].dropna()
@@ -683,6 +684,8 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
                     elif col == "PROJECTID":
                         attrs[col] = str(value) if pd.notna(value) else None
                     elif col == "POSTAL_SECTOR":
+                        attrs[col] = str(value) if pd.notna(value) else None
+                    elif col == "VEHICLE_TYPE":
                         attrs[col] = str(value) if pd.notna(value) else None
                     else:
                         try:
@@ -1018,6 +1021,7 @@ def run_streamlit_app() -> None:
                                     row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
                                     row["ProjectID"] = attrs.get("PROJECTID", "N/A")
                                     row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
+                                    row["VehicleType"] = attrs.get("VEHICLE_TYPE", "N/A")
                                     attr_rows.append(row)
                                 
                                 if attr_rows:
@@ -1114,6 +1118,7 @@ def run_streamlit_app() -> None:
                     row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
                     row["ProjectID"] = attrs.get("PROJECTID", "N/A")
                     row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
+                    row["VehicleType"] = attrs.get("VEHICLE_TYPE", "N/A")
                     attr_summary_rows.append(row)
                 
                 if attr_summary_rows:
@@ -1149,7 +1154,8 @@ def run_streamlit_app() -> None:
                         reference_columns = ["LOAD_NO", "ITEM_NO", "LENGTH", "WIDTH", 
                                            "HEIGHT", "DIAMETER",
                                            "ORDER_PIECES", "WEIGHT", "SHAPE",
-                                           "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR"]
+                                           "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR",
+                                           "VEHICLE_TYPE"]
                     
                     # Convert plan to DataFrame
                     output_df = _plan_to_output_dataframe(
