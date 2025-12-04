@@ -499,15 +499,15 @@ class SteelLoadingPlanner:
                         attr_lines = [f"  {item_no} (from history):"]
                         attr_lines.extend(format_attributes_for_display(hist_attrs, "history"))
                         user_prompt += "\n".join(attr_lines) + "\n"
-        else:
-            # Try to get attributes from historical data
-            user_prompt += "\nPhysical attributes (from historical data if available):\n"
-            for item_no in new_items_list:
-                attrs = self.history.item_attributes.get(item_no, {})
-                if attrs and any(v is not None for v in attrs.values()):
-                    attr_lines = [f"  {item_no}:"]
-                    attr_lines.extend(format_attributes_for_display(attrs))
-                    user_prompt += "\n".join(attr_lines) + "\n"
+        # else:
+        #     # Try to get attributes from historical data
+        #     user_prompt += "\nPhysical attributes (from historical data if available):\n"
+        #     for item_no in new_items_list:
+        #         attrs = self.history.item_attributes.get(item_no, {})
+        #         if attrs and any(v is not None for v in attrs.values()):
+        #             attr_lines = [f"  {item_no}:"]
+        #             attr_lines.extend(format_attributes_for_display(attrs))
+        #             user_prompt += "\n".join(attr_lines) + "\n"
 
         # if baseline_plan:
         #     user_prompt += (
