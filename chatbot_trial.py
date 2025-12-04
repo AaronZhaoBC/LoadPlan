@@ -63,7 +63,7 @@ class SteelLoadingPlanner:
         # Keep physical attribute columns if they exist
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE"
+            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
         ]
         return df
 
@@ -78,7 +78,7 @@ class SteelLoadingPlanner:
         item_attributes: Dict[str, Dict[str, Any]] = {}
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE"
+            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
         ]
         
         for item_no in self.dataframe["ITEM_NO"].unique():
@@ -180,7 +180,7 @@ class SteelLoadingPlanner:
 
     def _build_context_summary(self) -> str:
         total_loads = len(self.history.load_groups)
-        unique_items = self.dataframe["ITEM_NO"].nunique()
+        unique_items = self.dataframe["PROJECTID"].nunique()
         summary_lines = [
             f"Historical loads analysed: {total_loads}",
             f"Unique steel items observed: {unique_items}",
@@ -354,6 +354,8 @@ class SteelLoadingPlanner:
         item_attributes: Optional[Dict[str, Dict[str, Any]]] = None,
         temperature: float = 0.1,
         use_history_plan: bool = True,
+        weight_min:int = 10,
+        combine_max:int = 3,
     ) -> Dict[str, Any]:
         """
         Ask an OpenAI model to propose a loading plan for the new items.
@@ -386,53 +388,62 @@ class SteelLoadingPlanner:
         
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
-            "Consider physical dimensions (length, width, height, diameter), weight, quantity, "
+            "Consider maximum loading weight of assigned vehicle, total order weight for project ID, "
+            "physical dimensions (length, width, height), weight, quantity, "
             "and shape when making loading decisions. Use similar historical loading cases as reference "
             "to recommend efficient groupings while keeping practical constraints in mind. "
+            "Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
 
         # Build prompt with similar cases
         user_prompt = f"New steel items to load (ITEM_NO): {new_items_list}\n\n"
         
-        if similar_loads:
-            user_prompt += "Similar historical loading cases found:\n\n"
-            for idx, (load_no, sim_score, load_info) in enumerate(similar_loads, 1):
-                user_prompt += f"Case {idx} (LOAD_NO: {load_no}, Similarity: {sim_score:.2%}):\n"
-                user_prompt += f"  Items: {', '.join(load_info['items'])}\n"
-                user_prompt += f"  Total weight: {load_info['total_weight_kg']:.2f} kg"
-                if load_info['total_weight_ton'] > 0:
-                    user_prompt += f" ({load_info['total_weight_ton']:.3f} ton)"
-                user_prompt += f"\n  Total pieces: {load_info['total_pieces']}\n"
+        # if similar_loads:
+        #     user_prompt += "Similar historical loading cases found:\n\n"
+        #     for idx, (load_no, sim_score, load_info) in enumerate(similar_loads, 1):
+        #         user_prompt += f"Case {idx} (LOAD_NO: {load_no}, Similarity: {sim_score:.2%}):\n"
+        #         user_prompt += f"  Items: {', '.join(load_info['items'])}\n"
+        #         user_prompt += f"  Total weight: {load_info['total_weight_kg']:.2f} kg"
+        #         if load_info['total_weight_ton'] > 0:
+        #             user_prompt += f" ({load_info['total_weight_ton']:.3f} ton)"
+        #         user_prompt += f"\n  Total pieces: {load_info['total_pieces']}\n"
                 
-                # Add item details with attributes
-                if load_info['item_details']:
-                    user_prompt += "  Item details:\n"
-                    for item_detail in load_info['item_details'][:10]:  # Limit to first 10 items
-                        item_no = item_detail['ITEM_NO']
-                        attrs = item_detail['attributes']
-                        user_prompt += f"    {item_no}: "
-                        attr_parts = []
-                        if attrs.get("LENGTH"):
-                            attr_parts.append(f"L={attrs['LENGTH']:.0f}mm")
-                        if attrs.get("WIDTH"):
-                            attr_parts.append(f"W={attrs['WIDTH']:.0f}mm")
-                        if attrs.get("HEIGHT"):
-                            attr_parts.append(f"H={attrs['HEIGHT']:.0f}mm")
-                        if attrs.get("WEIGHT"):
-                            ton_val = attrs["WEIGHT"]
-                            attr_parts.append(f"Weight={ton_val:.3f} ton")
-                            attr_parts.append(f"Weight={ton_val * 1000:.1f} kg")
-                        if attrs.get("ORDER_PIECES"):
-                            attr_parts.append(f"Pieces={int(attrs['ORDER_PIECES'])}")
-                        if attrs.get("SHAPE"):
-                            attr_parts.append(f"Shape={attrs['SHAPE']}")
-                        user_prompt += ", ".join(attr_parts) + "\n"
-                user_prompt += "\n"
-        else:
-            # Fallback to general summary if no similar cases found
-            context_summary = self._build_context_summary()
-            user_prompt += f"Historical summary:\n{context_summary}\n\n"
+        #         # Add item details with attributes
+        #         if load_info['item_details']:
+        #             user_prompt += "  Item details:\n"
+        #             for item_detail in load_info['item_details'][:10]:  # Limit to first 10 items
+        #                 item_no = item_detail['ITEM_NO']
+        #                 attrs = item_detail['attributes']
+        #                 user_prompt += f"    {item_no}: "
+        #                 attr_parts = []
+        #                 if attrs.get("LENGTH"):
+        #                     attr_parts.append(f"L={attrs['LENGTH']:.0f}mm")
+        #                 if attrs.get("WIDTH"):
+        #                     attr_parts.append(f"W={attrs['WIDTH']:.0f}mm")
+        #                 if attrs.get("HEIGHT"):
+        #                     attr_parts.append(f"H={attrs['HEIGHT']:.0f}mm")
+        #                 if attrs.get("WEIGHT"):
+        #                     ton_val = attrs["WEIGHT"]
+        #                     attr_parts.append(f"Weight={ton_val:.3f} ton")
+        #                     attr_parts.append(f"Weight={ton_val * 1000:.1f} kg")
+        #                 if attrs.get("ORDER_PIECES"):
+        #                     attr_parts.append(f"Pieces={int(attrs['ORDER_PIECES'])}")
+        #                 if attrs.get("SHAPE"):
+        #                     attr_parts.append(f"Shape={attrs['SHAPE']}")
+        #                 if attrs.get("CUSTOMERID"):
+        #                     attr_parts.append(f"CustomerID={attrs['CUSTOMERID']}")
+        #                 if attrs.get("PROJECTID"):
+        #                     attr_parts.append(f"ProjectID={attrs['PROJECTID']}")
+        #                 if attrs.get("POST_SECTOR"):
+        #                     attr_parts.append(f"PostalSector={attrs['POST_SECTOR']}")
+        #                 user_prompt += ", ".join(attr_parts) + "\n"
+        #         user_prompt += "\n"
+        # else:
+        #     # Fallback to general summary if no similar cases found
+        #     context_summary = self._build_context_summary()
+        #     user_prompt += f"Historical summary:\n{context_summary}\n\n"
+      
 
         # Add physical attributes for new items with better formatting
         def format_attribute_value(key: str, value: Any) -> str:
@@ -440,7 +451,7 @@ class SteelLoadingPlanner:
             if value is None:
                 return "N/A"
             if isinstance(value, (int, float)):
-                if key in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER"]:
+                if key in ["LENGTH", "WIDTH", "HEIGHT"]:
                     return f"{value:.2f} mm"
                 elif key == "WEIGHT":
                     return f"{value:.3f} ton ({value * 1000:.1f} kg)"
@@ -461,7 +472,11 @@ class SteelLoadingPlanner:
                 "DIAMETER": "Diameter",
                 "ORDER_PIECES": "Pieces",
                 "WEIGHT": "Weight",
-                "SHAPE": "Shape"
+                "SHAPE": "Shape",
+                "CUSTOMERID": "CustomerID",
+                "PROJECTID": "ProjectID",
+                "POSTAL_SECTOR": "PostalSector",
+                "VEHICLE_TYPE": "VehicleType"
             }
             
             for key, value in attrs.items():
@@ -505,10 +520,12 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- Physical dimensions and weight constraints\n"
-            "- Shape compatibility\n"
-            "- Historical loading patterns\n"
-            "- Efficient space utilization"
+            "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
+            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + ".\n"
+            "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore. If the distence is greater than 8 KM, the project cannot be loaded to same vehicle."
+            #"- Physical dimensions and weight constraints"
+            #"- Historical loading patterns\n"
+            #"- Efficient space utilization"
         )
 
         response_text = self._call_openai(system_prompt, user_prompt, temperature)
@@ -640,7 +657,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
     # Extract attributes for each item
     attribute_columns = [
         "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-        "ORDER_PIECES", "WEIGHT", "SHAPE"
+        "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
     ]
     
     item_attributes: Dict[str, Dict[str, Any]] = {}
@@ -654,13 +671,21 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
         attrs: Dict[str, Any] = {}
         
         # For dimensions and shape, use first non-null value
-        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE"]:
+        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"]:
             if col in df.columns:
                 # Get first non-null value
                 values = item_group[col].dropna()
                 if len(values) > 0:
                     value = values.iloc[0]
                     if col == "SHAPE":
+                        attrs[col] = str(value) if pd.notna(value) else None
+                    elif col == "CUSTOMERID":
+                        attrs[col] = str(value) if pd.notna(value) else None
+                    elif col == "PROJECTID":
+                        attrs[col] = str(value) if pd.notna(value) else None
+                    elif col == "POSTAL_SECTOR":
+                        attrs[col] = str(value) if pd.notna(value) else None
+                    elif col == "VEHICLE_TYPE":
                         attrs[col] = str(value) if pd.notna(value) else None
                     else:
                         try:
@@ -881,6 +906,12 @@ def run_streamlit_app() -> None:
         temperature = st.slider(
             "Generation temperature", min_value=0.0, max_value=1.0, value=0.1, step=0.05
         )
+        weight_min = st.slider(
+            "Min Weight per Load", min_value=5, max_value=20, value=10, step=1
+        )
+        combine_max = st.slider(
+            "Max Combined Projects", min_value=1, max_value=10, value=3, step=1
+        )
         use_history_plan = st.checkbox(
             "Provide historical baseline to OpenAI", value=True,
             help="If enabled, the baseline plan generated from historical patterns will be passed "
@@ -953,7 +984,7 @@ def run_streamlit_app() -> None:
                 with st.expander("Preview uploaded data", expanded=False):
                     st.write(f"**Total rows:** {len(uploaded_df)}")
                     st.write(f"**Unique items:** {len(parsed_items)}")
-                    st.dataframe(uploaded_df.head(10), use_container_width=True)
+                    st.dataframe(uploaded_df.head(10), width="stretch")
                 
                 # Display extracted items and attributes
                 if parsed_items:
@@ -987,11 +1018,15 @@ def run_streamlit_app() -> None:
                                         row["Weight (ton)"] = ton_value if ton_value is not None else "N/A"
                                     row["Pieces"] = attrs.get("ORDER_PIECES", "N/A")
                                     row["Shape"] = attrs.get("SHAPE", "N/A")
+                                    row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
+                                    row["ProjectID"] = attrs.get("PROJECTID", "N/A")
+                                    row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
+                                    row["VehicleType"] = attrs.get("VEHICLE_TYPE", "N/A")
                                     attr_rows.append(row)
                                 
                                 if attr_rows:
                                     attr_df = pd.DataFrame(attr_rows)
-                                    st.dataframe(attr_df, use_container_width=True, hide_index=True)
+                                    st.dataframe(attr_df, width="stretch", hide_index=True)
         except Exception as e:
             st.error(f"Error processing uploaded file: {str(e)}")
             uploaded_df = None
@@ -1010,6 +1045,8 @@ def run_streamlit_app() -> None:
                     item_attributes=item_attributes,
                     temperature=temperature,
                     use_history_plan=use_history_plan,
+                    weight_min=weight_min,
+                    combine_max=combine_max,
                 )
             except RuntimeError as exc:
                 st.error(str(exc))
@@ -1078,17 +1115,21 @@ def run_streamlit_app() -> None:
                         row["Weight (kg)"] = "N/A"
                     
                     row["Shape"] = attrs.get("SHAPE", "N/A")
+                    row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
+                    row["ProjectID"] = attrs.get("PROJECTID", "N/A")
+                    row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
+                    row["VehicleType"] = attrs.get("VEHICLE_TYPE", "N/A")
                     attr_summary_rows.append(row)
                 
                 if attr_summary_rows:
                     attr_summary_df = pd.DataFrame(attr_summary_rows)
-                    st.dataframe(attr_summary_df, use_container_width=True, hide_index=True)
+                    st.dataframe(attr_summary_df, width="stretch", hide_index=True)
 
         if openai_result.get("baseline_plan"):
             with st.expander("Baseline provided to the model"):
                 st.dataframe(
                     _plan_to_dataframe(openai_result["baseline_plan"]),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
         # Generate output CSV with same format as input file
@@ -1112,7 +1153,9 @@ def run_streamlit_app() -> None:
                         # Default columns if neither available
                         reference_columns = ["LOAD_NO", "ITEM_NO", "LENGTH", "WIDTH", 
                                            "HEIGHT", "DIAMETER",
-                                           "ORDER_PIECES", "WEIGHT", "SHAPE"]
+                                           "ORDER_PIECES", "WEIGHT", "SHAPE",
+                                           "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR",
+                                           "VEHICLE_TYPE"]
                     
                     # Convert plan to DataFrame
                     output_df = _plan_to_output_dataframe(
@@ -1125,7 +1168,7 @@ def run_streamlit_app() -> None:
                     with st.expander("Preview output table (same format as input)", expanded=False):
                         st.write(f"**Total rows:** {len(output_df)}")
                         st.write(f"**Number of loads:** {output_df['LOAD_NO'].nunique() if 'LOAD_NO' in output_df.columns else 0}")
-                        st.dataframe(output_df.head(20), use_container_width=True)
+                        st.dataframe(output_df.head(20), width="stretch")
             except Exception as e:
                 st.warning(f"Could not generate output table: {str(e)}")
                 output_df = None
