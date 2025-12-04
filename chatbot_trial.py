@@ -509,12 +509,12 @@ class SteelLoadingPlanner:
                     attr_lines.extend(format_attributes_for_display(attrs))
                     user_prompt += "\n".join(attr_lines) + "\n"
 
-        if baseline_plan:
-            user_prompt += (
-                "\nBaseline plan from historical templates:\n"
-                f"{baseline_plan}\n"
-                "You may refine this plan if needed. "
-            )
+        # if baseline_plan:
+        #     user_prompt += (
+        #         "\nBaseline plan from historical templates:\n"
+        #         f"{baseline_plan}\n"
+        #         "You may refine this plan if needed. "
+        #     )
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
