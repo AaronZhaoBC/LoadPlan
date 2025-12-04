@@ -63,7 +63,7 @@ class SteelLoadingPlanner:
         # Keep physical attribute columns if they exist
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
+            "ORDER_PIECES", "WEIGHT", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
         ]
         return df
 
@@ -78,7 +78,7 @@ class SteelLoadingPlanner:
         item_attributes: Dict[str, Dict[str, Any]] = {}
         attribute_columns = [
             "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-            "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
+            "ORDER_PIECES", "WEIGHT", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
         ]
         
         for item_no in self.dataframe["ITEM_NO"].unique():
@@ -230,12 +230,12 @@ class SteelLoadingPlanner:
                         pass
             
             # Shape distribution
-            shapes = [v.get("SHAPE") for v in attrs.values() if v.get("SHAPE")]
-            if shapes:
-                shape_counter = Counter(shapes)
-                summary_lines.append("  Shape distribution:")
-                for shape, count in shape_counter.most_common(5):
-                    summary_lines.append(f"    {shape}: {count} items")
+            # shapes = [v.get("SHAPE") for v in attrs.values() if v.get("SHAPE")]
+            # if shapes:
+            #     shape_counter = Counter(shapes)
+            #     summary_lines.append("  Shape distribution:")
+            #     for shape, count in shape_counter.most_common(5):
+            #         summary_lines.append(f"    {shape}: {count} items")
 
         return "\n".join(summary_lines)
 
@@ -471,7 +471,6 @@ class SteelLoadingPlanner:
                 "DIAMETER": "Diameter",
                 "ORDER_PIECES": "Pieces",
                 "WEIGHT": "Weight",
-                "SHAPE": "Shape",
                 "CUSTOMERID": "CustomerID",
                 "PROJECTID": "ProjectID",
                 "POSTAL_SECTOR": "PostalSector",
@@ -656,7 +655,7 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
     # Extract attributes for each item
     attribute_columns = [
         "LENGTH", "WIDTH", "HEIGHT", "DIAMETER",
-        "ORDER_PIECES", "WEIGHT", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
+        "ORDER_PIECES", "WEIGHT", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"
     ]
     
     item_attributes: Dict[str, Dict[str, Any]] = {}
@@ -670,15 +669,13 @@ def _extract_items_from_uploaded_file(df: pd.DataFrame) -> Tuple[List[str], Dict
         attrs: Dict[str, Any] = {}
         
         # For dimensions and shape, use first non-null value
-        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "SHAPE", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"]:
+        for col in ["LENGTH", "WIDTH", "HEIGHT", "DIAMETER", "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR", "VEHICLE_TYPE"]:
             if col in df.columns:
                 # Get first non-null value
                 values = item_group[col].dropna()
                 if len(values) > 0:
                     value = values.iloc[0]
-                    if col == "SHAPE":
-                        attrs[col] = str(value) if pd.notna(value) else None
-                    elif col == "CUSTOMERID":
+                    if col == "CUSTOMERID":
                         attrs[col] = str(value) if pd.notna(value) else None
                     elif col == "PROJECTID":
                         attrs[col] = str(value) if pd.notna(value) else None
@@ -1016,7 +1013,6 @@ def run_streamlit_app() -> None:
                                         row["Weight (kg)"] = "N/A"
                                         row["Weight (ton)"] = ton_value if ton_value is not None else "N/A"
                                     row["Pieces"] = attrs.get("ORDER_PIECES", "N/A")
-                                    row["Shape"] = attrs.get("SHAPE", "N/A")
                                     row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
                                     row["ProjectID"] = attrs.get("PROJECTID", "N/A")
                                     row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
@@ -1113,7 +1109,6 @@ def run_streamlit_app() -> None:
                         row["Weight (ton)"] = attrs.get("WEIGHT", "N/A")
                         row["Weight (kg)"] = "N/A"
                     
-                    row["Shape"] = attrs.get("SHAPE", "N/A")
                     row["CustomerID"] = attrs.get("CUSTOMERID", "N/A")
                     row["ProjectID"] = attrs.get("PROJECTID", "N/A")
                     row["PostalSector"] = attrs.get("POSTAL_SECTOR", "N/A")
@@ -1152,7 +1147,7 @@ def run_streamlit_app() -> None:
                         # Default columns if neither available
                         reference_columns = ["LOAD_NO", "ITEM_NO", "LENGTH", "WIDTH", 
                                            "HEIGHT", "DIAMETER",
-                                           "ORDER_PIECES", "WEIGHT", "SHAPE",
+                                           "ORDER_PIECES", "WEIGHT",
                                            "CUSTOMERID", "PROJECTID", "POSTAL_SECTOR",
                                            "VEHICLE_TYPE"]
                     
