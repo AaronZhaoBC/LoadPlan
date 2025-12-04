@@ -389,8 +389,7 @@ class SteelLoadingPlanner:
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
             "Consider maximum loading weight of assigned vehicle, total order weight for project ID, and "
-            "physical dimensions (length, width, height) when making loading decisions. Use similar historical loading cases as reference "
-            "to recommend efficient groupings while keeping practical constraints in mind. "
+            "physical dimensions (length, width, height) when making loading decisions. "
             "Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
