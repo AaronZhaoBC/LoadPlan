@@ -560,15 +560,15 @@ class SteelLoadingPlanner:
         #     return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
         # except AttributeError:
             # Fall back to chat completions for older client versions.
-            completion = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=temperature,
-            )
-            return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+        )
+        return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
 
 def _normalize_item_input(raw_input: str) -> List[str]:
     """Parse user input that may contain commas, whitespace, or new lines."""
