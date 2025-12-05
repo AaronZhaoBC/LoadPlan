@@ -243,6 +243,10 @@ class SteelLoadingPlanner:
         """Public accessor for the textual summary of historical patterns."""
         return self._build_context_summary()
     
+    def get_user_summary(self) -> str:
+        """Public accessor for the textual summary of historical patterns."""
+        return user_prompt
+
     def find_similar_loads(
         self,
         new_items: Sequence[str],
@@ -388,12 +392,12 @@ class SteelLoadingPlanner:
         
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
-            "Consider maximum loading weight of assigned vehicle, total order weight for project ID, and "
-            "physical dimensions (length, width, height) when making loading decisions. "
+            "Consider maximum loading weight of assigned vehicle, total order weight for project ID when making loading decisions. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
 
         # Build prompt with similar cases
+        global user_prompt
         user_prompt = f"New steel items to load (ITEM_NO): {new_items_list}\n\n"
         
         # if similar_loads:
@@ -1207,6 +1211,7 @@ def run_streamlit_app() -> None:
     if planner and show_history:
         st.subheader("Historical insights")
         st.code(planner.get_context_summary())
+        st.code(planner.get_user_summary())
 
 
 def demo() -> None:
