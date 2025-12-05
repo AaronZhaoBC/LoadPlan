@@ -513,7 +513,7 @@ class SteelLoadingPlanner:
             "- All orders shall be loaded to assigned vehicle type.\n"
             "- Orders of each projectID shall be loaded to one vehicle if it is capable.\n"
             "- If total weight of projectID is below " + str(weight_min) + " Ton, it shall be combined with other projectID, and the maximum number of combined projectID is " + str(combine_max) + ".\n"
-            "- Distances between projects shall be considered based on postal sectors, ensuring no truck exceeds the 8 KM limit for mixed project IDs.\n"
+            "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore to ensure the distence between project location not exceeds 8 KM limit for mixed projectID.\n"
             "- Ensure the loading is not exceeded the maximum weight of vehicle type TR40/24 is 24 Ton, vehicle type LB30 is 30 Ton, vehicle type HC is 10 Ton. "
             #"- Physical dimensions and weight constraints"
             #"- Historical loading patterns\n"
