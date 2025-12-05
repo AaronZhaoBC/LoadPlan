@@ -390,7 +390,6 @@ class SteelLoadingPlanner:
             "You are a logistics planner specialising in loading plans for steel transport. "
             "Consider maximum loading weight of assigned vehicle, total order weight for project ID, and "
             "physical dimensions (length, width, height) when making loading decisions. "
-            "Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons. "
             "Answer in concise natural language, clearly listing each truck and its assigned steel items."
         )
 
@@ -520,6 +519,7 @@ class SteelLoadingPlanner:
             "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
             "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + ".\n"
             "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore. If the distence is greater than 8 KM, the project cannot be loaded to same vehicle."
+            "- Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons. "
             #"- Physical dimensions and weight constraints"
             #"- Historical loading patterns\n"
             #"- Efficient space utilization"
