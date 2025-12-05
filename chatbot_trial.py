@@ -243,10 +243,6 @@ class SteelLoadingPlanner:
         """Public accessor for the textual summary of historical patterns."""
         return self._build_context_summary()
     
-    def get_user_summary(self) -> str:
-        """Public accessor for the textual summary of historical patterns."""
-        return user_prompt
-
     def find_similar_loads(
         self,
         new_items: Sequence[str],
@@ -397,7 +393,6 @@ class SteelLoadingPlanner:
         )
 
         # Build prompt with similar cases
-        global user_prompt
         user_prompt = f"New steel items to load (ITEM_NO): {new_items_list}\n\n"
         
         # if similar_loads:
@@ -547,6 +542,7 @@ class SteelLoadingPlanner:
             "baseline_plan": baseline_plan or [],
             "response_text": response_text,
             "similar_cases": similar_cases,
+            "user_prompt":user_prompt,
         }
 
     def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
@@ -1060,6 +1056,12 @@ def run_streamlit_app() -> None:
         else:
             st.warning("The model did not return any content.")
 
+        # Display user_prompt
+        user_prompt = openai_result.get("user_prompt", [])
+        if user_prompt:
+            with st.expander("User prompting", expanded=False):
+                st.write(user_prompt)
+                
         # Display similar historical cases used
         similar_cases = openai_result.get("similar_cases", [])
         if similar_cases:
@@ -1211,7 +1213,6 @@ def run_streamlit_app() -> None:
     if planner and show_history:
         st.subheader("Historical insights")
         st.code(planner.get_context_summary())
-        st.code(planner.get_user_summary())
 
 
 def demo() -> None:
