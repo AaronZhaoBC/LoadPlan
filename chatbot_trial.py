@@ -515,10 +515,10 @@ class SteelLoadingPlanner:
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- If total weight of project ID is above " + str(weight_min) + " Tons, it shall be loaded to one vehicle only."
-            "- If total weight of project ID is below " + str(weight_min) + " Tons, it shall be loaded to a vehicle together with others, and the maximum number of different project ID is " + str(combine_max) + ".\n"
+            "- If total weight of projectID is above " + str(weight_min * 1000) + " KG, it shall not loaded together with other projectID."
+            "- If total weight of projectID is below " + str(weight_min * 1000) + " KG, it shall be loaded to a vehicle together with others, and the maximum number of different projectID is " + str(combine_max) + ".\n"
             "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore. If the distence is greater than 8 KM, the project cannot be loaded to same vehicle."
-            "- Maximum loading weight of Vehicle TR40/24 is 24 Tons; LB30 is 30 Tons. "
+            "- Maximum loading weight of Vehicle TR40/24 is 24000 KG; LB30 is 30000 KG. "
             #"- Physical dimensions and weight constraints"
             #"- Historical loading patterns\n"
             #"- Efficient space utilization"
@@ -1061,7 +1061,7 @@ def run_streamlit_app() -> None:
         if user_prompt:
             with st.expander("User prompting", expanded=False):
                 st.write(user_prompt)
-                
+
         # Display similar historical cases used
         similar_cases = openai_result.get("similar_cases", [])
         if similar_cases:
