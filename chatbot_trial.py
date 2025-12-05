@@ -393,8 +393,8 @@ class SteelLoadingPlanner:
         
         system_prompt = (
             "You are a logistics planner specialising in loading plans for steel transport. "
-            "Consider maximum loading weight of assigned vehicle, total order weight for projectID when making loading decisions. "
-            "Answer in concise natural language, clearly listing each truck and its assigned steel items."
+            "Consider vehicle capacity and total weight of orders for each projectID when making loading decisions. "
+            "Answer in concise natural language, clearly listing each truck and its assigned steel orders."
         )
 
         # Build prompt with similar cases
@@ -491,30 +491,30 @@ class SteelLoadingPlanner:
                         attr_lines = [f"  {item_no} (from history):"]
                         attr_lines.extend(format_attributes_for_display(hist_attrs, "history"))
                         user_prompt += "\n".join(attr_lines) + "\n"
-        # else:
-        #     # Try to get attributes from historical data
-        #     user_prompt += "\nPhysical attributes (from historical data if available):\n"
-        #     for item_no in new_items_list:
-        #         attrs = self.history.item_attributes.get(item_no, {})
-        #         if attrs and any(v is not None for v in attrs.values()):
-        #             attr_lines = [f"  {item_no}:"]
-        #             attr_lines.extend(format_attributes_for_display(attrs))
-        #             user_prompt += "\n".join(attr_lines) + "\n"
+        else:
+            # Try to get attributes from historical data
+            user_prompt += "\nPhysical attributes (from historical data if available):\n"
+            for item_no in new_items_list:
+                attrs = self.history.item_attributes.get(item_no, {})
+                if attrs and any(v is not None for v in attrs.values()):
+                    attr_lines = [f"  {item_no}:"]
+                    attr_lines.extend(format_attributes_for_display(attrs))
+                    user_prompt += "\n".join(attr_lines) + "\n"
 
-        # if baseline_plan:
-        #     user_prompt += (
-        #         "\nBaseline plan from historical templates:\n"
-        #         f"{baseline_plan}\n"
-        #         "You may refine this plan if needed. "
-        #     )
+        if baseline_plan:
+            user_prompt += (
+                "\nBaseline plan from historical templates:\n"
+                f"{baseline_plan}\n"
+                "You may refine this plan if needed. "
+            )
 
         user_prompt += (
             "\nPlease provide a loading plan considering:\n"
-            "- Order shall be loaded to assigned vehicle type.\n"
-            "- Orders of same projectID shall be loaded to one vehicle if it is capable.\n"
+            "- All orders shall be loaded to assigned vehicle type.\n"
+            "- Orders of each projectID shall be loaded to one vehicle if it is capable.\n"
             "- If total weight of projectID is below " + str(weight_min) + " Ton, it shall be combined with other projectID, and the maximum number of combined projectID is " + str(combine_max) + ".\n"
             "- Distances between projects shall be considered based on postal sectors, ensuring no truck exceeds the 8 KM limit for mixed project IDs.\n"
-            "- Maximum loading weight of vehicle TR40/24 is 24 Ton; vehicle LB30 is 30 Ton; vehicle HC is 10 Ton. "
+            "- Ensure the loading is not exceeded the maximum weight of vehicle type TR40/24 is 24 Ton, vehicle type LB30 is 30 Ton, vehicle type HC is 10 Ton. "
             #"- Physical dimensions and weight constraints"
             #"- Historical loading patterns\n"
             #"- Efficient space utilization"
