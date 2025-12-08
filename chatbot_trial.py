@@ -514,7 +514,7 @@ class SteelLoadingPlanner:
             "- Orders of each projectID shall be loaded to one vehicle where possible.\n"
             "- if the total weight of orders for each projectID is above " + str(weight_min) + " Ton, no need to combine with other projectID.\n"
             "- If total weight of projectID is below " + str(weight_min) + " Ton, it shall be combined with other projectID, and the maximum number of combined projectID is " + str(combine_max) + ".\n"
-            "- Calculate distence between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore to ensure the distence between project location not exceeds 8 KM limit for mixed projectID.\n"
+            "- Calculate distance between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore to ensure the distance between project location not exceeds 8 KM limit for mixed projectID.\n"
             "- Ensure the loading is not exceeded the maximum weight of 24 Ton for vehicle type TR40/24, 30 Ton for vehicle type LB30, 10 Ton for vehicle type HC."
             #"- Physical dimensions and weight constraints"
             #"- Historical loading patterns"
