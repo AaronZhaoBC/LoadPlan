@@ -38,7 +38,7 @@ class SteelLoadingPlanner:
         self,
         data_path: str,
         openai_api_key: Optional[str] = None,
-        model: str = "gpt-4o-mini",
+        model: str = "gpt-4.1-mini",
         top_k_combos: int = 10,
     ) -> None:
         self.data_path = data_path
@@ -891,7 +891,7 @@ def run_streamlit_app() -> None:
 
         # Advanced settings (hidden by default)
         base_data_path = "data.xlsx"
-        base_model_name = "gpt-4o-mini"
+        base_model_name = "gpt-4.1-mini"
         with st.expander("Advanced model & data settings", expanded=False):
             st.caption("Adjust only if you need to override default data/model paths.")
             data_path_input = st.text_input("Historical data file", base_data_path, key="data_path_input")
@@ -932,7 +932,7 @@ def run_streamlit_app() -> None:
             planner = SteelLoadingPlanner(
                 data_path=str(data_file),
                 openai_api_key=openai_key_input.strip() or None,
-                model=model_name_input.strip() or "gpt-4o-mini",
+                model=model_name_input.strip() or "gpt-4.1-mini",
                 top_k_combos=top_k,
             )
         except Exception as exc:  # pylint: disable=broad-except
