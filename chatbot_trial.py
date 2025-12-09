@@ -545,14 +545,37 @@ class SteelLoadingPlanner:
 
     def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
         try:
-            response = self.client.responses.create(
+            if self.model == "gpt-5-mini":
+                response = self.client.responses.create(
                 model=self.model,
                 input=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
+                parameters={
+                    "verbosity": "low",      #low / medium / high
+                    "reasoning_effort": "minimal",  #minimal / low / medium / high
+                    "max_output_tokens": 10000
+                }
                 #temperature=temperature,
-            )
+                )
+            elif self.model == "gpt-4o-mini":
+                response = self.client.responses.create(
+                model=self.model,
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=temperature,
+                )
+            else:
+                response = self.client.responses.create(
+                model=self.model,
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                )
             return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
         except AttributeError:
             # Fall back to chat completions for older client versions.
@@ -562,7 +585,7 @@ class SteelLoadingPlanner:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                temperature=temperature,
+                #temperature=temperature,
             )
             return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
 
