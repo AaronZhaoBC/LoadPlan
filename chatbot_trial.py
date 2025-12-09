@@ -550,7 +550,7 @@ class SteelLoadingPlanner:
                 input=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
-                ],
+                ]
                 #temperature=temperature,
             )
             return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
@@ -561,7 +561,7 @@ class SteelLoadingPlanner:
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
-                ],
+                ]
                 #temperature=temperature,
             )
             return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
