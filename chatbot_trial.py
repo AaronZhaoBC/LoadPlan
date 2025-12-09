@@ -562,7 +562,7 @@ class SteelLoadingPlanner:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                temperature=temperature,
+                #temperature=temperature,
             )
             return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
 
