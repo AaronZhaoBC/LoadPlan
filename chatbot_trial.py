@@ -552,11 +552,11 @@ class SteelLoadingPlanner:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                parameters={
-                    "verbosity": "low",      #low / medium / high
-                    "reasoning_effort": "minimal",  #minimal / low / medium / high
-                    "max_output_tokens": 10000
-                }
+                # parameters={
+                #     "verbosity": "low",      #low / medium / high
+                #     "reasoning_effort": "minimal",  #minimal / low / medium / high
+                #     "max_output_tokens": 10000
+                # }
                 #temperature=temperature,
                 )
             elif self.model == "gpt-4o-mini":
