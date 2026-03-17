@@ -38,7 +38,7 @@ class SteelLoadingPlanner:
         self,
         data_path: str,
         openai_api_key: Optional[str] = None,
-        model: str = "gpt-4o-mini",
+        model: str = "gpt-4.1-mini",
         top_k_combos: int = 10,
     ) -> None:
         self.data_path = data_path
@@ -514,7 +514,7 @@ class SteelLoadingPlanner:
             "- Orders of each projectID shall be loaded to one vehicle where possible.\n"
             "- if the total weight of orders for each projectID is above " + str(weight_min) + " Ton, no need to combine with other projectID.\n"
             "- If total weight of projectID is below " + str(weight_min) + " Ton, it shall be combined with other projectID, and the maximum number of combined projectID is " + str(combine_max) + ".\n"
-            "- Calculate distance between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore to ensure the distance between project location not exceeds 8 KM limit for mixed projectID.\n"
+            #"- Calculate distance between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore to ensure the distance between project location not exceeds 8 KM limit for mixed projectID.\n"
             "- Ensure the loading is not exceeded the maximum weight of 24 Ton for vehicle type TR40/24, 30 Ton for vehicle type LB30, 10 Ton for vehicle type HC.\n"
             "- List each truck load explicitly with projectID and order number."
             #"- Physical dimensions and weight constraints"
@@ -550,8 +550,8 @@ class SteelLoadingPlanner:
                 input=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
-                ],
-                temperature=temperature,
+                ]
+                #temperature=temperature,
             )
             return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
         except AttributeError:
@@ -561,8 +561,8 @@ class SteelLoadingPlanner:
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
-                ],
-                temperature=temperature,
+                ]
+                #temperature=temperature,
             )
             return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
 
@@ -892,7 +892,7 @@ def run_streamlit_app() -> None:
 
         # Advanced settings (hidden by default)
         base_data_path = "data.xlsx"
-        base_model_name = "gpt-4o-mini"
+        base_model_name = "gpt-4.1-mini"
         with st.expander("Advanced model & data settings", expanded=False):
             st.caption("Adjust only if you need to override default data/model paths.")
             data_path_input = st.text_input("Historical data file", base_data_path, key="data_path_input")
@@ -933,7 +933,7 @@ def run_streamlit_app() -> None:
             planner = SteelLoadingPlanner(
                 data_path=str(data_file),
                 openai_api_key=openai_key_input.strip() or None,
-                model=model_name_input.strip() or "gpt-4o-mini",
+                model=model_name_input.strip() or "gpt-4.1-mini",
                 top_k_combos=top_k,
             )
         except Exception as exc:  # pylint: disable=broad-except
