@@ -1086,24 +1086,19 @@ def run_streamlit_app() -> None:
     openai_result: Optional[Dict[str, Any]] = None
     
     if st.button("Generate plan with OpenAI", type="primary"):
-        if planner is None:
-            st.error(planner_error or "Planner could not be initialised.")
-        elif not parsed_items:
-            st.warning("Please upload a file with steel items first.")
-        else:
-            try:
-                openai_result = planner.plan_with_openai(
-                    parsed_items,
-                    item_attributes=item_attributes,
-                    temperature=temperature,
-                    use_history_plan=use_history_plan,
-                    weight_min=weight_min,
-                    combine_max=combine_max,
-                )
-            except RuntimeError as exc:
-                st.error(str(exc))
-            except Exception as exc:  # pylint: disable=broad-except
-                st.error(f"Failed to retrieve response from OpenAI: {exc}")
+        try:
+            openai_result = planner.plan_with_openai(
+            parsed_items,
+            item_attributes=item_attributes,
+            temperature=temperature,
+            use_history_plan=use_history_plan,
+            weight_min=weight_min,
+            combine_max=combine_max,
+            )
+        except RuntimeError as exc:
+           st.error(str(exc))
+        except Exception as exc:  # pylint: disable=broad-except
+           st.error(f"Failed to retrieve response from OpenAI: {exc}")
 
     if openai_result is not None:
         st.subheader("Plan suggested by OpenAI")
