@@ -103,7 +103,7 @@ class SteelLoadingPlanner:
             )
             response = chat_session.send_message(prompt)
         except:
-            return "Sorry, but you need to insert API key to start conversation (send_prompt) " + openai_api_key
+            return "Sorry, but you need to insert API key to start conversation (send_prompt) "
         return response.text
 
     def __init__(
@@ -582,6 +582,9 @@ class SteelLoadingPlanner:
         #     )
 
         user_prompt += (
+            "\nYou are a logistics planner specialising in loading plans for steel transport. "
+            "Consider vehicle capacity and total weight of orders for each projectID when making loading decisions. "
+            "Answer in concise natural language, clearly listing each truck and its assigned steel orders."
             "\nPlease provide a loading plan considering:\n"
             "- All orders shall be loaded to assigned vehicle type.\n"
             "- Orders of each projectID shall be loaded to one vehicle where possible.\n"
@@ -619,9 +622,9 @@ class SteelLoadingPlanner:
     def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float, openai_api_key: str) -> str:
 
       try:
-        response = self.send_prompt(openai_api_key, system_prompt + user_prompt)
+        response = self.send_prompt(openai_api_key, user_prompt)
       except:
-        return "Sorry, but you need to insert API key to start conversation. OK" + response
+        return "Sorry, but you need to insert API key to start conversation. OK"
 
       return response  
 
