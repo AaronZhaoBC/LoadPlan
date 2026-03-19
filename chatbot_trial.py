@@ -78,7 +78,7 @@ class SteelLoadingPlanner:
         genai.configure(api_key=key)
         return "Key inserted succesfully!"
 
-    def send_prompt(prompt: str) -> str:
+    def send_prompt(openai_api_key: str, prompt: str) -> str:
         """
         Sends a user prompt to the Gemini API and retrieves the response.
         *Cracks knuckles* That's a job well done for today..
@@ -90,6 +90,8 @@ class SteelLoadingPlanner:
         """
 
         try:
+            genai.configure(api_key=openai_api_key)
+
             model = genai.GenerativeModel(
                 model_name="gemini-3.1-flash-lite",
                 generation_config=generation_config,
@@ -431,6 +433,7 @@ class SteelLoadingPlanner:
         use_history_plan: bool = True,
         weight_min:int = 10,
         combine_max:int = 3,
+        openai_api_key:str="",
     ) -> Dict[str, Any]:
         """
         Ask an OpenAI model to propose a loading plan for the new items.
@@ -592,7 +595,7 @@ class SteelLoadingPlanner:
             #"- Efficient space utilization"
         )
 
-        response_text = self._call_openai(system_prompt, user_prompt, temperature)
+        response_text = self._call_openai(system_prompt, user_prompt, temperature, openai_api_key)
 
         # Format similar loads for return
         similar_cases = []
@@ -613,10 +616,10 @@ class SteelLoadingPlanner:
             "user_prompt":user_prompt,
         }
 
-    def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
+    def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float, openai_api_key: str) -> str:
 
       try:
-        response = chat_session.send_message(system_prompt + user_prompt)
+        response = send_prompt(openai_api_key, system_prompt + user_prompt)
       except:
         return "Sorry, but you need to insert API key to start conversation"
 
@@ -986,7 +989,6 @@ def run_streamlit_app() -> None:
         planner_error = f"Data file '{data_file}' not found."
     else:
         try:
-            genai.configure(api_key=openai_key_input.strip())
             planner = SteelLoadingPlanner(
                 data_path=str(data_file),
                 openai_api_key=openai_key_input.strip() or None,
@@ -1098,6 +1100,7 @@ def run_streamlit_app() -> None:
                     use_history_plan=use_history_plan,
                     weight_min=weight_min,
                     combine_max=combine_max,
+                    openai_api_key=openai_key_input.strip() or None,
                 )
             except RuntimeError as exc:
                 st.error(str(exc))
