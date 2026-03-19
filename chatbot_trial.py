@@ -621,9 +621,9 @@ class SteelLoadingPlanner:
       try:
         response = self.send_prompt(openai_api_key, system_prompt + user_prompt)
       except:
-        return "Sorry, but you need to insert API key to start conversation. OK" + response.text
+        return "Sorry, but you need to insert API key to start conversation. OK" + response
 
-      return response.text  
+      return response  
 
 def _normalize_item_input(raw_input: str) -> List[str]:
     """Parse user input that may contain commas, whitespace, or new lines."""
