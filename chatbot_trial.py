@@ -45,16 +45,6 @@ safety_settings = [
   },
 ]
 
-model = genai.GenerativeModel(
-  model_name="gemini-3.1-flash-lite",
-  generation_config=generation_config,
-)
-
-chat_session = model.start_chat(
-  history=[
-  ]
-)
-
 
 @dataclass
 class HistoricalStats:
@@ -100,6 +90,15 @@ class SteelLoadingPlanner:
         """
 
         try:
+            model = genai.GenerativeModel(
+                model_name="gemini-3.1-flash-lite",
+                generation_config=generation_config,
+            )
+
+            chat_session = model.start_chat(
+                history=[
+                ]
+            )
             response = chat_session.send_message(prompt)
         except:
             return "Sorry, but you need to insert API key to start conversation"
