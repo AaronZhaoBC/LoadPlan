@@ -73,36 +73,36 @@ class SteelLoadingPlanner:
     and optionally refine it via an OpenAI model.
     """
 
-def establish_api(key:str)->str:
-  """
-    Establishes a connection with the Gemini API using the provided key. 
-    A lot of blood, sweat, and tears went into writing this function.
+    def establish_api(key:str)->str:
+        """
+        Establishes a connection with the Gemini API using the provided key. 
+        A lot of blood, sweat, and tears went into writing this function.
 
-    Args:
-        key (str): The Gemini API key obtained from the user.
-    Returns:
-        str: Feedback message indicating successful or unsuccessful API connection (optional).
-  """
+        Args:
+            key (str): The Gemini API key obtained from the user.
+        Returns:
+            str: Feedback message indicating successful or unsuccessful API connection (optional).
+        """
 
-  genai.configure(api_key=key)
-  return "Key inserted succesfully!"
+        genai.configure(api_key=key)
+        return "Key inserted succesfully!"
 
-def send_prompt(prompt: str) -> str:
-  """
-    Sends a user prompt to the Gemini API and retrieves the response.
-    *Cracks knuckles* That's a job well done for today..
+    def send_prompt(prompt: str) -> str:
+        """
+        Sends a user prompt to the Gemini API and retrieves the response.
+        *Cracks knuckles* That's a job well done for today..
 
-    Args:
-        prompt (str): The user's message input.
-    Returns:
-        str: The response received from the Gemini API.
-  """
+        Args:
+            prompt (str): The user's message input.
+        Returns:
+            str: The response received from the Gemini API.
+        """
 
-  try:
-    response = chat_session.send_message(prompt)
-  except:
-    return "Sorry, but you need to insert API key to start conversation"
-  return response.text
+        try:
+            response = chat_session.send_message(prompt)
+        except:
+            return "Sorry, but you need to insert API key to start conversation"
+        return response.text
 
     def __init__(
         self,
