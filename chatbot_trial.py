@@ -103,7 +103,7 @@ class SteelLoadingPlanner:
             )
             response = chat_session.send_message(prompt)
         except:
-            return "Sorry, but you need to insert API key to start conversation"
+            return "Sorry, but you need to insert API key to start conversation (send_prompt) " + openai_api_key
         return response.text
 
     def __init__(
@@ -621,7 +621,7 @@ class SteelLoadingPlanner:
       try:
         response = send_prompt(openai_api_key, system_prompt + user_prompt)
       except:
-        return "Sorry, but you need to insert API key to start conversation"
+        return "Sorry, but you need to insert API key to start conversation. OK"
 
       return response.text  
 
