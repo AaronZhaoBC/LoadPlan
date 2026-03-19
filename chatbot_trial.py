@@ -7,9 +7,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
-from openai import OpenAI
 
 import google.generativeai as genai
+
+from openai import OpenAI
 
 DEFAULT_OPENAI_KEY = (
     "sk-proj-bhcLSdjLUnlP-d3POL6r6X8Rjys5EEULMkCt-PFwVgHhmF27cxWLwxlVEbTDNFw_"
