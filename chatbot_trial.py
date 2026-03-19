@@ -987,13 +987,13 @@ def run_streamlit_app() -> None:
         planner_error = f"Data file '{data_file}' not found."
     else:
         try:
-            planner = SteelLoadingPlanner(
-                data_path=str(data_file),
-                openai_api_key=openai_key_input.strip() or None,
-                model=model_name_input.strip() or "gpt-4.1-mini",
-                top_k_combos=top_k,
-            )
-            genai.configure(api_key=openai_key_input.strip() or None)
+            #planner = SteelLoadingPlanner(
+            #    data_path=str(data_file),
+            #    openai_api_key=openai_key_input.strip() or None,
+            #    model=model_name_input.strip() or "gpt-4.1-mini",
+            #    top_k_combos=top_k,
+            #)
+            genai.configure(api_key=openai_key_input.strip())
         except Exception as exc:  # pylint: disable=broad-except
             planner_error = str(exc)
 
@@ -1001,7 +1001,7 @@ def run_streamlit_app() -> None:
     st.write(
         "Upload a table file (xlsx or csv) containing steel items to load. "
         "The file should have the same column structure as the historical data file (data.xlsx), "
-        "with at least an 'ORDER_NO' column. Physical attributes will be extracted from the file if available."
+        "with at least an 'ORDER_NO' column. Physical attributes will be extracted from the file if available." + openai_key_input
     )
 
     uploaded_file = st.file_uploader(
