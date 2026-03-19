@@ -9,10 +9,49 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import pandas as pd
 from openai import OpenAI
 
+import google.generativeai as genai
+
 DEFAULT_OPENAI_KEY = (
     "sk-proj-bhcLSdjLUnlP-d3POL6r6X8Rjys5EEULMkCt-PFwVgHhmF27cxWLwxlVEbTDNFw_"
     "DpXnipBckXT3BlbkFJXvE-RJPH6KhxCtIxE7rH1wJ_D_YedoMFANa9aPk-p74SORUqLEliN"
     "GpHh6Td6LqXbW5KpBrS4A"
+)
+
+# Gemini settings to manipulate a desired outcome
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 64,
+  "max_output_tokens": 8192,
+  "response_mime_type": "text/plain",
+}
+safety_settings = [
+  {
+    "category": "HARM_CATEGORY_HARASSMENT",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+  },
+  {
+    "category": "HARM_CATEGORY_HATE_SPEECH",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+  },
+  {
+    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+  },
+  {
+    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+  },
+]
+
+model = genai.GenerativeModel(
+  model_name="gemini-3.1-flash-lite",
+  generation_config=generation_config,
+)
+
+chat_session = model.start_chat(
+  history=[
+  ]
 )
 
 
@@ -33,6 +72,37 @@ class SteelLoadingPlanner:
     When new steel items arrive, it can propose a baseline plan based on historical combinations
     and optionally refine it via an OpenAI model.
     """
+
+def establish_api(key:str)->str:
+  """
+    Establishes a connection with the Gemini API using the provided key. 
+    A lot of blood, sweat, and tears went into writing this function.
+
+    Args:
+        key (str): The Gemini API key obtained from the user.
+    Returns:
+        str: Feedback message indicating successful or unsuccessful API connection (optional).
+  """
+
+  genai.configure(api_key=key)
+  return "Key inserted succesfully!"
+
+def send_prompt(prompt: str) -> str:
+  """
+    Sends a user prompt to the Gemini API and retrieves the response.
+    *Cracks knuckles* That's a job well done for today..
+
+    Args:
+        prompt (str): The user's message input.
+    Returns:
+        str: The response received from the Gemini API.
+  """
+
+  try:
+    response = chat_session.send_message(prompt)
+  except:
+    return "Sorry, but you need to insert API key to start conversation"
+  return response.text
 
     def __init__(
         self,
@@ -512,8 +582,8 @@ class SteelLoadingPlanner:
             "\nPlease provide a loading plan considering:\n"
             "- All orders shall be loaded to assigned vehicle type.\n"
             "- Orders of each projectID shall be loaded to one vehicle where possible.\n"
-            #"- if the total weight of orders for each projectID is above " + str(weight_min) + " Ton, no need to combine with other projectID.\n"
-            #"- If total weight of projectID is below " + str(weight_min) + " Ton, it shall be combined with other projectID, and the maximum number of combined projectID is " + str(combine_max) + ".\n"
+            "- if the total weight of orders for each projectID is above " + str(weight_min) + " Ton, no need to combine with other projectID.\n"
+            "- If total weight of projectID is below " + str(weight_min) + " Ton, it shall be combined with other projectID, and the maximum number of combined projectID is " + str(combine_max) + ".\n"
             #"- Calculate distance between the projects that to be loaded to one vehicle using POSTAL_SECTOR in Singapore to ensure the distance between project location not exceeds 8 KM limit for mixed projectID.\n"
             "- Ensure the loading is not exceeded the maximum weight of 24 Ton for vehicle type TR40/24, 30 Ton for vehicle type LB30, 10 Ton for vehicle type HC.\n"
             "- List each truck load explicitly with projectID and order number."
@@ -544,27 +614,13 @@ class SteelLoadingPlanner:
         }
 
     def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
-        try:
-            response = self.client.responses.create(
-                model=self.model,
-                input=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ]
-                #temperature=temperature,
-            )
-            return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
-        except AttributeError:
-            # Fall back to chat completions for older client versions.
-            completion = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ]
-                #temperature=temperature,
-            )
-            return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
+
+      try:
+        response = chat_session.send_message(user_prompt)
+      except:
+        return "Sorry, but you need to insert API key to start conversation"
+
+      return response.text  
 
 def _normalize_item_input(raw_input: str) -> List[str]:
     """Parse user input that may contain commas, whitespace, or new lines."""
@@ -936,6 +992,7 @@ def run_streamlit_app() -> None:
                 model=model_name_input.strip() or "gpt-4.1-mini",
                 top_k_combos=top_k,
             )
+            genai.configure(api_key=openai_key_input.strip() or None)
         except Exception as exc:  # pylint: disable=broad-except
             planner_error = str(exc)
 
