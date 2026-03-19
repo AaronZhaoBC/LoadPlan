@@ -619,9 +619,9 @@ class SteelLoadingPlanner:
     def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float, openai_api_key: str) -> str:
 
       try:
-        response = send_prompt(openai_api_key, system_prompt + user_prompt)
+        response = self.send_prompt(openai_api_key, system_prompt + user_prompt)
       except:
-        return "Sorry, but you need to insert API key to start conversation. OK" + openai_api_key
+        return "Sorry, but you need to insert API key to start conversation. OK" + response
 
       return response.text  
 
