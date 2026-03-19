@@ -547,11 +547,10 @@ class SteelLoadingPlanner:
         try:
             response = self.client.responses.create(
                 model=self.model,
-                input=user_prompt
-                #input=[
-                #    {"role": "system", "content": system_prompt},
-                #    {"role": "user", "content": user_prompt},
-                #]
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
                 #temperature=temperature,
             )
             return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
