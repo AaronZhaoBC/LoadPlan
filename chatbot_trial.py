@@ -617,7 +617,7 @@ class SteelLoadingPlanner:
     def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
 
       try:
-        response = chat_session.send_message(user_prompt)
+        response = chat_session.send_message(system_prompt + user_prompt)
       except:
         return "Sorry, but you need to insert API key to start conversation"
 
