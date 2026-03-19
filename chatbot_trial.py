@@ -7,9 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
-
-import google.generativeai as genai
-
 from openai import OpenAI
 
 DEFAULT_OPENAI_KEY = (
@@ -17,33 +14,6 @@ DEFAULT_OPENAI_KEY = (
     "DpXnipBckXT3BlbkFJXvE-RJPH6KhxCtIxE7rH1wJ_D_YedoMFANa9aPk-p74SORUqLEliN"
     "GpHh6Td6LqXbW5KpBrS4A"
 )
-
-# Gemini settings to manipulate a desired outcome
-generation_config = {
-  "temperature": 1,
-  "top_p": 0.95,
-  "top_k": 64,
-  "max_output_tokens": 8192,
-  "response_mime_type": "text/plain",
-}
-safety_settings = [
-  {
-    "category": "HARM_CATEGORY_HARASSMENT",
-    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-  },
-  {
-    "category": "HARM_CATEGORY_HATE_SPEECH",
-    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-  },
-  {
-    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-  },
-  {
-    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-    "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-  },
-]
 
 
 @dataclass
@@ -63,48 +33,6 @@ class SteelLoadingPlanner:
     When new steel items arrive, it can propose a baseline plan based on historical combinations
     and optionally refine it via an OpenAI model.
     """
-
-    def establish_api(key:str)->str:
-        """
-        Establishes a connection with the Gemini API using the provided key. 
-        A lot of blood, sweat, and tears went into writing this function.
-
-        Args:
-            key (str): The Gemini API key obtained from the user.
-        Returns:
-            str: Feedback message indicating successful or unsuccessful API connection (optional).
-        """
-
-        genai.configure(api_key=key)
-        return "Key inserted succesfully!"
-
-    def send_prompt(openai_api_key: str, prompt: str) -> str:
-        """
-        Sends a user prompt to the Gemini API and retrieves the response.
-        *Cracks knuckles* That's a job well done for today..
-
-        Args:
-            prompt (str): The user's message input.
-        Returns:
-            str: The response received from the Gemini API.
-        """
-
-        try:
-            genai.configure(api_key=openai_api_key)
-
-            model = genai.GenerativeModel(
-                model_name="gemini-3.1-flash-lite",
-                generation_config=generation_config,
-            )
-
-            chat_session = model.start_chat(
-                history=[
-                ]
-            )
-            response = chat_session.send_message(prompt)
-        except:
-            return "Sorry, but you need to insert API key to start conversation (send_prompt) "
-        return response.text
 
     def __init__(
         self,
@@ -433,7 +361,6 @@ class SteelLoadingPlanner:
         use_history_plan: bool = True,
         weight_min:int = 10,
         combine_max:int = 3,
-        openai_api_key:str="",
     ) -> Dict[str, Any]:
         """
         Ask an OpenAI model to propose a loading plan for the new items.
@@ -582,9 +509,6 @@ class SteelLoadingPlanner:
         #     )
 
         user_prompt += (
-            "\nYou are a logistics planner specialising in loading plans for steel transport. "
-            "Consider vehicle capacity and total weight of orders for each projectID when making loading decisions. "
-            "Answer in concise natural language, clearly listing each truck and its assigned steel orders."
             "\nPlease provide a loading plan considering:\n"
             "- All orders shall be loaded to assigned vehicle type.\n"
             "- Orders of each projectID shall be loaded to one vehicle where possible.\n"
@@ -598,7 +522,7 @@ class SteelLoadingPlanner:
             #"- Efficient space utilization"
         )
 
-        response_text = self._call_openai(system_prompt, user_prompt, temperature, openai_api_key)
+        response_text = self._call_openai(system_prompt, user_prompt, temperature)
 
         # Format similar loads for return
         similar_cases = []
@@ -619,14 +543,28 @@ class SteelLoadingPlanner:
             "user_prompt":user_prompt,
         }
 
-    def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float, openai_api_key: str) -> str:
-
-      try:
-        response = self.send_prompt(openai_api_key, user_prompt)
-      except:
-        return "Sorry, but you need to insert API key to start conversation. OK" + user_prompt
-
-      return response  
+    def _call_openai(self, system_prompt: str, user_prompt: str, temperature: float) -> str:
+        try:
+            response = self.client.responses.create(
+                model=self.model,
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
+                #temperature=temperature,
+            )
+            return response.output[0].content[0].text.strip()  # type: ignore[attr-defined]
+        except AttributeError:
+            # Fall back to chat completions for older client versions.
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
+                #temperature=temperature,
+            )
+            return completion.choices[0].message.content.strip()  # type: ignore[attr-defined]
 
 def _normalize_item_input(raw_input: str) -> List[str]:
     """Parse user input that may contain commas, whitespace, or new lines."""
@@ -1005,7 +943,7 @@ def run_streamlit_app() -> None:
     st.write(
         "Upload a table file (xlsx or csv) containing steel items to load. "
         "The file should have the same column structure as the historical data file (data.xlsx), "
-        "with at least an 'ORDER_NO' column. Physical attributes will be extracted from the file if available." + openai_key_input
+        "with at least an 'ORDER_NO' column. Physical attributes will be extracted from the file if available."
     )
 
     uploaded_file = st.file_uploader(
@@ -1103,7 +1041,6 @@ def run_streamlit_app() -> None:
                     use_history_plan=use_history_plan,
                     weight_min=weight_min,
                     combine_max=combine_max,
-                    openai_api_key=openai_key_input.strip() or None,
                 )
             except RuntimeError as exc:
                 st.error(str(exc))
